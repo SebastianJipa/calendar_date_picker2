@@ -37,6 +37,7 @@ class CalendarDatePicker2 extends StatefulWidget {
   CalendarDatePicker2({
     required this.config,
     required this.value,
+    this.notSelectableRanges,
     this.onValueChanged,
     this.displayedMonthDate,
     this.onDisplayedMonthChanged,
@@ -70,6 +71,9 @@ class CalendarDatePicker2 extends StatefulWidget {
 
   /// The selected [DateTime]s that the picker should display.
   final List<DateTime?> value;
+
+  /// The selected [DateRange]s that the picker should display, only for range picker mode.
+  final List<DateRange>? notSelectableRanges;
 
   /// Called when the selected dates changed
   final ValueChanged<List<DateTime?>>? onValueChanged;
@@ -262,8 +266,26 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
               selectedDates.length > 1 && selectedDates[1] != null;
           final isSelectedDayBeforeStartDate =
               value.isBefore(selectedDates[0]!);
+          var currentDateRange = isSelectedDayBeforeStartDate
+              ? DateRange(value, selectedDates[0]!)
+              : DateRange(selectedDates[0]!, value);
+          final containsNotSelectableDates = currentDateRange
+              .getDaysInBetween()
+              .fold<bool>(
+                  false,
+                  ((previousValue, element) =>
+                      previousValue ||
+                      !(widget.config.selectableDayPredicate?.call(element) ??
+                          true)));
+          final containsNotSelectableRanges = widget.notSelectableRanges?.fold(
+              false,
+              (previousValue, element) =>
+                  currentDateRange.containsRange(dateRange: element));
 
-          if (isRangeSet) {
+          if (containsNotSelectableRanges == true ||
+              containsNotSelectableDates) {
+            selectedDates = [value, null];
+          } else if (isRangeSet) {
             selectedDates = [value, null];
           } else if (isSelectedDayBeforeStartDate && !bidirectional) {
             selectedDates = [value, null];
@@ -297,6 +319,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           key: _monthPickerKey,
           initialMonth: _currentDisplayedMonthDate,
           selectedDates: _selectedDates,
+          notSelectableRanges: widget.notSelectableRanges ?? [],
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
         );

@@ -11,6 +11,7 @@ class _DayPicker extends StatefulWidget {
     required this.displayedMonth,
     required this.selectedDates,
     required this.onChanged,
+    required this.notSelectableRanges,
     Key? key,
   }) : super(key: key);
 
@@ -21,6 +22,11 @@ class _DayPicker extends StatefulWidget {
   ///
   /// Selected dates are highlighted in the picker.
   final List<DateTime> selectedDates;
+
+  /// The not selectable ranges.
+  ///
+  /// Not selectable are highlighted in the picker.
+  final List<DateRange> notSelectableRanges;
 
   /// Called when the user picks a day.
   final ValueChanged<DateTime> onChanged;
@@ -147,7 +153,6 @@ class _DayPickerState extends State<_DayPicker> {
             !(widget.config.selectableDayPredicate?.call(dayToBuild) ?? true);
         final bool isSelectedDay =
             widget.selectedDates.any((d) => DateUtils.isSameDay(d, dayToBuild));
-
         final bool isToday =
             DateUtils.isSameDay(widget.config.currentDate, dayToBuild);
 
@@ -203,6 +208,19 @@ class _DayPickerState extends State<_DayPicker> {
                 widget.selectedDates.length == 2;
         var isDateInBetweenRangePickerSelectedDates = false;
 
+        final bool isInNotSelectableRanges = widget.config.calendarType ==
+                CalendarDatePicker2Type.range &&
+            widget.notSelectableRanges
+                .fold<bool>(false, (t, e) => t || e.contains(date: dayToBuild));
+        final DateRangeBoundary? boundaryForNotSelectableRanges = widget
+                    .config.calendarType ==
+                CalendarDatePicker2Type.range
+            ? widget.notSelectableRanges.fold<DateRangeBoundary?>(null, (t, e) {
+                var border = e.isBoundary(date: dayToBuild);
+                return border ?? t;
+              })
+            : null;
+
         if (isFullySelectedRangePicker) {
           final startDate = DateUtils.dateOnly(widget.selectedDates[0]);
           final endDate = DateUtils.dateOnly(widget.selectedDates[1]);
@@ -220,6 +238,18 @@ class _DayPickerState extends State<_DayPicker> {
 
         if (isSelectedDay) {
           customDayTextStyle = widget.config.selectedDayTextStyle;
+        }
+
+        if (boundaryForNotSelectableRanges != null) {
+          dayColor = selectedDayColor;
+          decoration = BoxDecoration(
+            borderRadius: widget.config.dayBorderRadius,
+            color: widget.config.notSelectableRangesBoundaryHighlightColor ??
+                selectedDayBackground,
+            shape: widget.config.dayBorderRadius != null
+                ? BoxShape.rectangle
+                : BoxShape.circle,
+          );
         }
 
         final dayTextStyle =
@@ -294,12 +324,63 @@ class _DayPickerState extends State<_DayPicker> {
           }
         }
 
+        if (isInNotSelectableRanges || boundaryForNotSelectableRanges != null) {
+          final rangePickerIncludedDayDecoration = BoxDecoration(
+            color: widget.config.notSelectableRangesHighlightColor ??
+                (widget.config.selectedDayHighlightColor ??
+                        selectedDayBackground)
+                    .withOpacity(0.15),
+          );
+
+          if (boundaryForNotSelectableRanges == DateRangeBoundary.top) {
+            dayWidget = Stack(
+              children: [
+                Row(children: [
+                  const Spacer(),
+                  Expanded(
+                    child: Container(
+                      decoration: rangePickerIncludedDayDecoration,
+                    ),
+                  ),
+                ]),
+                dayWidget,
+              ],
+            );
+          } else if (boundaryForNotSelectableRanges ==
+              DateRangeBoundary.bottom) {
+            dayWidget = Stack(
+              children: [
+                Row(children: [
+                  Expanded(
+                    child: Container(
+                      decoration: rangePickerIncludedDayDecoration,
+                    ),
+                  ),
+                  const Spacer(),
+                ]),
+                dayWidget,
+              ],
+            );
+          } else {
+            dayWidget = Stack(
+              children: [
+                Container(
+                  decoration: rangePickerIncludedDayDecoration,
+                ),
+                dayWidget,
+              ],
+            );
+          }
+        }
+
         dayWidget = Padding(
           padding: const EdgeInsets.symmetric(vertical: 1),
           child: dayWidget,
         );
 
-        if (isDisabled) {
+        if (isDisabled ||
+            isInNotSelectableRanges ||
+            boundaryForNotSelectableRanges != null) {
           dayWidget = ExcludeSemantics(
             child: dayWidget,
           );

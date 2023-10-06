@@ -10,6 +10,7 @@ class _CalendarView extends StatefulWidget {
     required this.selectedDates,
     required this.onChanged,
     required this.onDisplayedMonthChanged,
+    required this.notSelectableRanges,
     Key? key,
   }) : super(key: key);
 
@@ -23,6 +24,11 @@ class _CalendarView extends StatefulWidget {
   ///
   /// Selected dates are highlighted in the picker.
   final List<DateTime?> selectedDates;
+
+  /// The not selectable ranges.
+  ///
+  /// Not selectable ranges are highlighted in the picker.
+  final List<DateRange?> notSelectableRanges;
 
   /// Called when the user picks a day.
   final ValueChanged<DateTime> onChanged;
@@ -290,7 +296,14 @@ class _CalendarViewState extends State<_CalendarView> {
   }
 
   bool _isSelectable(DateTime date) {
-    return widget.config.selectableDayPredicate?.call(date) ?? true;
+    return (widget.config.selectableDayPredicate?.call(date) ?? true) &&
+        widget.notSelectableRanges.fold(
+            true,
+            (previousValue, element) =>
+                !(element?.contains(date: date) ?? false)) &&
+        widget.notSelectableRanges.fold(true,
+            (previousValue, element) => element?.isBoundary(date: date) == null);
+    ;
   }
 
   Widget _buildItems(BuildContext context, int index) {
@@ -300,6 +313,9 @@ class _CalendarViewState extends State<_CalendarView> {
       key: ValueKey<DateTime>(month),
       selectedDates: (widget.selectedDates..removeWhere((d) => d == null))
           .cast<DateTime>(),
+      notSelectableRanges: (widget.notSelectableRanges
+            ..removeWhere((d) => d == null))
+          .cast<DateRange>(),
       onChanged: _handleDateSelected,
       config: widget.config,
       displayedMonth: month,

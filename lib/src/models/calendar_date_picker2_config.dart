@@ -54,6 +54,8 @@ class CalendarDatePicker2Config {
     this.selectedDayTextStyle,
     this.selectedDayHighlightColor,
     this.selectedRangeHighlightColor,
+    this.notSelectableRangesBoundaryHighlightColor,
+    this.notSelectableRangesHighlightColor,
     this.disabledDayTextStyle,
     this.todayTextStyle,
     this.yearTextStyle,
@@ -133,6 +135,14 @@ class CalendarDatePicker2Config {
   /// The highlight color for day(s) included in the selected range
   /// Only applicable when [calendarType] is [CalendarDatePicker2Type.range]
   final Color? selectedRangeHighlightColor;
+
+  /// The highlight color for boundary day(s) of the not selected ranges
+  /// /// Only applicable when [calendarType] is [CalendarDatePicker2Type.range]
+  final Color? notSelectableRangesBoundaryHighlightColor;
+
+  /// The highlight color for day(s) included in the not selected ranges
+  /// Only applicable when [calendarType] is [CalendarDatePicker2Type.range]
+  final Color? notSelectableRangesHighlightColor;
 
   /// Custom text style for disabled calendar day(s)
   final TextStyle? disabledDayTextStyle;
