@@ -324,7 +324,9 @@ class _DayPickerState extends State<_DayPicker> {
           }
         }
 
-        if (isInNotSelectableRanges || boundaryForNotSelectableRanges != null) {
+        if (isInNotSelectableRanges ||
+            (boundaryForNotSelectableRanges != null &&
+                boundaryForNotSelectableRanges != DateRangeBoundary.both)) {
           final rangePickerIncludedDayDecoration = BoxDecoration(
             color: widget.config.notSelectableRangesHighlightColor ??
                 (widget.config.selectedDayHighlightColor ??

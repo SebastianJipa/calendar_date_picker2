@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum DateRangeBoundary { top, bottom }
+enum DateRangeBoundary { top, bottom, both }
 
 class DateRange {
   final DateTime startDate;
@@ -20,7 +20,10 @@ class DateRange {
   }
 
   DateRangeBoundary? isBoundary({required DateTime date}) {
-    if (DateUtils.isSameDay(date, startDate)) {
+    if (DateUtils.isSameDay(date, startDate) &&
+        DateUtils.isSameDay(date, endDate)) {
+      return DateRangeBoundary.both;
+    } else if (DateUtils.isSameDay(date, startDate)) {
       return DateRangeBoundary.top;
     } else if (DateUtils.isSameDay(date, endDate)) {
       return DateRangeBoundary.bottom;
