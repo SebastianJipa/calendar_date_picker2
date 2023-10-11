@@ -277,9 +277,10 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
                       previousValue ||
                       !(widget.config.selectableDayPredicate?.call(element) ??
                           true)));
-          final containsNotSelectableRanges = widget.notSelectableRanges?.fold(
+          final containsNotSelectableRanges = widget.notSelectableRanges?.fold<bool>(
               false,
               (previousValue, element) =>
+                  previousValue ||
                   currentDateRange.containsRange(dateRange: element));
 
           if (containsNotSelectableRanges == true ||
